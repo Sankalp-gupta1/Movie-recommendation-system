@@ -1,37 +1,48 @@
 # Movie Recommendation System
 
-A live, explainable **content-based movie recommendation** demo.
+A fully client-side **content-based movie recommender**.
 
 ## Live app
 
-**https://movie-recommender-sankalp.vercel.app/**
+**https://movie-recommendation-system-two-eta.vercel.app/**
 
-## What the project does
+## What changed
 
-Choose a movie you like and the app recommends five similar titles.
+The repository previously had no implementation. It now contains a working interactive recommender.
 
-The score uses:
+Choose one movie and the application ranks the most similar titles using:
 
-- shared genres,
-- shared mood tags,
-- release-year similarity,
-- runtime similarity.
+- genre overlap
+- theme/keyword overlap
+- release-era similarity
 
-You can also filter recommendations by genre or mood.
+Everything runs locally in the browser.
 
-## Why this implementation is transparent
+## Recommendation logic
 
-The repository originally had documentation but no implementation files.
+Each movie has a set of content tags.
 
-The deployed version therefore does not pretend that an older hidden model exists. It uses a small curated movie catalogue and an explainable content-similarity algorithm implemented directly in JavaScript.
+The recommender calculates tag overlap using a Jaccard/cosine-style similarity score and adds a small release-era similarity component.
 
-## Tech stack
+```text
+selected movie
+   -> compare content tokens
+   -> calculate overlap score
+   -> compare release year
+   -> rank remaining movies
+   -> show best matches
+```
 
-- HTML
-- CSS
-- JavaScript
-- Content-based recommendation
-- Vercel
+## Features
+
+- Interactive movie selector
+- Eight ranked recommendations
+- Similarity percentage
+- Genre/theme tags
+- No API key
+- No database
+- No backend
+- Deterministic results
 
 ## Run locally
 
@@ -40,16 +51,28 @@ cd web
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000`.
+Open:
 
-## Limitations
+```text
+http://localhost:8000
+```
 
-- The demo uses a small built-in movie catalogue.
-- It does not use personal viewing history.
-- It is not a collaborative-filtering production recommender.
-- The ranking is deterministic and designed to be easy to inspect.
+## Tech stack
+
+- HTML
+- CSS
+- Vanilla JavaScript
+- Content-based filtering
+- Vercel
+
+## Scope
+
+The included dataset is intentionally small and embedded in the demo. It demonstrates recommendation-system logic rather than claiming production-scale personalization.
+
+A production recommender would normally use a larger catalog, user behavior, offline evaluation and feedback loops.
 
 ## Author
 
-Sankalp Gupta  
+**Sankalp Gupta**
+
 GitHub: https://github.com/Sankalp-gupta1
