@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CineMatch — Movie Recommender</title><meta name="description" content="Interactive content-based movie recommendation demo.">
+<style>
+:root{--bg:#09090b;--panel:#141416;--line:#2b2b30;--text:#f6f5f1;--muted:#96959c;--red:#ff5f57;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0,#321819 0,transparent 30%),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{width:min(1180px,calc(100% - 28px));margin:auto}.nav{height:76px;border-bottom:1px solid #242428;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;gap:10px;align-items:center}.mark{width:41px;height:41px;border-radius:13px;background:var(--red);display:grid;place-items:center;font-weight:900}.brand small,.brand strong{display:block}.brand small{font-size:10px;color:var(--muted);margin-top:2px}.nav a{font-size:12px;color:#bbb8bd;text-decoration:none}
+.hero{padding:68px 0 38px}.eyebrow{font-size:10px;color:var(--red);font-weight:800;text-transform:uppercase;letter-spacing:.18em}.hero h1{font-size:clamp(46px,7vw,78px);line-height:1;letter-spacing:-.055em;margin:13px 0 18px;max-width:900px}.hero p{color:#aaa7ae;line-height:1.7;max-width:720px}
+.controls{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:9px;border:1px solid var(--line);background:#111113;border-radius:18px;padding:10px;margin:22px 0}.controls select,.controls button{min-height:46px;border-radius:12px;border:1px solid #313137;background:#0b0b0d;color:white;padding:0 12px}.controls button{background:var(--red);border:0;font-weight:850;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;padding-bottom:70px}.card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,#161619,#111113);padding:18px;min-height:245px;display:flex;flex-direction:column;position:relative;overflow:hidden}.card:before{content:"";position:absolute;width:130px;height:130px;border-radius:50%;right:-55px;top:-55px;background:radial-gradient(circle,#ff5f5725,transparent 70%)}.rank{font-size:10px;color:#69686f}.title{font-size:22px;letter-spacing:-.025em;margin:22px 0 7px}.meta{font-size:10px;color:#85838a}.tags{display:flex;flex-wrap:wrap;gap:6px;margin:15px 0}.tag{font-size:9px;padding:6px 8px;border-radius:99px;border:1px solid #333239;color:#aaa8af}.spacer{flex:1}.score{display:flex;align-items:end;justify-content:space-between;border-top:1px solid #29292e;padding-top:13px}.score strong{font-size:24px;color:var(--gold)}.score span{font-size:9px;color:#77757b;text-transform:uppercase;letter-spacing:.1em}.why{font-size:10px;color:#8f8d94;line-height:1.55;margin-top:9px}
+.panel{border:1px solid var(--line);background:#111113;border-radius:18px;padding:18px;margin:0 0 18px}.panel h3{margin:0 0 8px}.panel p{color:#87858b;font-size:11px;line-height:1.65;margin:0}footer{height:75px;border-top:1px solid #242428;display:flex;align-items:center;justify-content:space-between;color:#66656b;font-size:10px}
+@media(max-width:850px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.controls{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.nav a{display:none}footer{flex-direction:column;justify-content:center;align-items:flex-start;gap:5px}}
+</style></head><body><div class="shell">
+<header class="nav"><div class="brand"><span class="mark">C</span><span><strong>CineMatch</strong><small>Content-Based Recommender</small></span></div><a href="https://github.com/Sankalp-gupta1/Movie-recommendation-system" target="_blank">GitHub ↗</a></header>
+<main><section class="hero"><span class="eyebrow">Explainable recommendations</span><h1>Pick a movie. Get five that feel similar.</h1><p>This demo uses a transparent content-based similarity score built from genre, mood, decade and runtime. No hidden API and no login.</p></section>
+<section class="controls"><select id="favorite"></select><select id="genre"><option value="">Any genre</option></select><select id="mood"><option value="">Any mood</option></select><button id="go">Recommend</button></section>
+<section class="panel"><h3 id="summary">Choose a favorite movie</h3><p id="explain">Recommendations will be ranked by shared genres and mood, with smaller bonuses for similar release year and runtime.</p></section>
+<section id="grid" class="grid"></section></main>
+<footer><span>Built by Sankalp Gupta</span><span>Content similarity · Vanilla JavaScript · Vercel</span></footer></div>
+<script>
+const movies=[
+["Interstellar",2014,169,["Sci-Fi","Drama"],["Emotional","Epic","Thoughtful"]],
+["Inception",2010,148,["Sci-Fi","Thriller"],["Mind-bending","Epic","Dark"]],
+["The Dark Knight",2008,152,["Action","Crime","Drama"],["Dark","Intense","Epic"]],
+["Arrival",2016,116,["Sci-Fi","Drama"],["Thoughtful","Emotional","Calm"]],
+["Blade Runner 2049",2017,164,["Sci-Fi","Drama"],["Dark","Thoughtful","Atmospheric"]],
+["The Matrix",1999,136,["Sci-Fi","Action"],["Mind-bending","Intense","Epic"]],
+["Dune",2021,155,["Sci-Fi","Adventure"],["Epic","Atmospheric","Dark"]],
+["Dune: Part Two",2024,166,["Sci-Fi","Adventure"],["Epic","Intense","Atmospheric"]],
+["Mad Max: Fury Road",2015,120,["Action","Adventure"],["Intense","Fast","Epic"]],
+["John Wick",2014,101,["Action","Crime"],["Fast","Dark","Intense"]],
+["The Social Network",2010,120,["Drama"],["Sharp","Intense","Thoughtful"]],
+["Whiplash",2014,107,["Drama","Music"],["Intense","Dark","Motivating"]],
+["La La Land",2016,128,["Romance","Music","Drama"],["Emotional","Warm","Bittersweet"]],
+["Her",2013,126,["Romance","Sci-Fi","Drama"],["Thoughtful","Emotional","Calm"]],
+["Eternal Sunshine",2004,108,["Romance","Sci-Fi","Drama"],["Emotional","Mind-bending","Bittersweet"]],
+["The Grand Budapest Hotel",2014,99,["Comedy","Adventure"],["Warm","Quirky","Fast"]],
+["Knives Out",2019,130,["Mystery","Comedy","Crime"],["Sharp","Fun","Fast"]],
+["Parasite",2019,132,["Thriller","Drama"],["Dark","Sharp","Intense"]],
+["Gone Girl",2014,149,["Thriller","Mystery","Drama"],["Dark","Intense","Sharp"]],
+["Prisoners",2013,153,["Thriller","Crime","Drama"],["Dark","Intense","Atmospheric"]],
+["The Prestige",2006,130,["Mystery","Drama"],["Mind-bending","Dark","Intense"]],
+["Oppenheimer",2023,180,["Drama","History"],["Intense","Thoughtful","Epic"]],
+["Ford v Ferrari",2019,152,["Drama","Sport"],["Motivating","Fast","Warm"]],
+["Moneyball",2011,133,["Drama","Sport"],["Thoughtful","Motivating","Calm"]],
+["The Wolf of Wall Street",2013,180,["Drama","Comedy","Crime"],["Fast","Wild","Dark"]],
+["Good Will Hunting",1997,126,["Drama"],["Warm","Emotional","Thoughtful"]],
+["The Shawshank Redemption",1994,142,["Drama"],["Emotional","Hopeful","Thoughtful"]],
+["Spirited Away",2001,125,["Animation","Fantasy","Adventure"],["Warm","Atmospheric","Emotional"]],
+["Spider-Man: Into the Spider-Verse",2018,117,["Animation","Action","Adventure"],["Fun","Fast","Warm"]],
+["Coco",2017,105,["Animation","Adventure"],["Emotional","Warm","Hopeful"]],
+["Toy Story 3",2010,103,["Animation","Comedy","Adventure"],["Emotional","Warm","Fun"]],
+["The Lord of the Rings: Fellowship",2001,178,["Fantasy","Adventure"],["Epic","Warm","Atmospheric"]],
+["Harry Potter and the Prisoner of Azkaban",2004,142,["Fantasy","Adventure"],["Atmospheric","Dark","Warm"]],
+["The Revenant",2015,156,["Adventure","Drama"],["Dark","Intense","Atmospheric"]],
+["1917",2019,119,["War","Drama"],["Intense","Atmospheric","Epic"]],
+["Jojo Rabbit",2019,108,["Comedy","Drama","War"],["Warm","Bittersweet","Quirky"]]
+].map((m,i)=>({id:i,title:m[0],year:m[1],runtime:m[2],genres:m[3],moods:m[4]}));
+const $=s=>document.querySelector(s),fav=$("#favorite"),genre=$("#genre"),mood=$("#mood");
+movies.forEach(m=>fav.add(new Option(m.title,m.id)));[...new Set(movies.flatMap(m=>m.genres))].sort().forEach(x=>genre.add(new Option(x,x)));[...new Set(movies.flatMap(m=>m.moods))].sort().forEach(x=>mood.add(new Option(x,x)));
+function overlap(a,b){return a.filter(x=>b.includes(x)).length}
+function score(a,b){const g=overlap(a.genres,b.genres),mo=overlap(a.moods,b.moods);const year=Math.max(0,1-Math.abs(a.year-b.year)/20),run=Math.max(0,1-Math.abs(a.runtime-b.runtime)/90);return g*3+mo*2+year+.6*run}
+function run(){const base=movies[+fav.value],gf=genre.value,mf=mood.value;let list=movies.filter(m=>m.id!==base.id&&(!gf||m.genres.includes(gf))&&(!mf||m.moods.includes(mf))).map(m=>({m,s:score(base,m)})).sort((a,b)=>b.s-a.s).slice(0,5);$("#summary").textContent="Because you liked "+base.title;$("#explain").textContent="Ranking favors shared genres and moods, then nearby release years and runtimes.";$("#grid").innerHTML=list.map((x,i)=>{const m=x.m,shared=[...m.genres.filter(z=>base.genres.includes(z)),...m.moods.filter(z=>base.moods.includes(z))];return '<article class="card"><div class="rank">#'+(i+1)+' recommendation</div><div class="title">'+m.title+'</div><div class="meta">'+m.year+' · '+m.runtime+' min</div><div class="tags">'+m.genres.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div><div class="spacer"></div><div class="score"><div><span>Similarity</span><strong>'+x.s.toFixed(1)+'</strong></div><div class="meta">'+shared.slice(0,3).join(" · ")+'</div></div><div class="why">Shared signals: '+(shared.length?shared.join(", "):"similar year/runtime")+'</div></article>'}).join("")}
+$("#go").onclick=run;fav.value=0;run();
+</script></body></html>
